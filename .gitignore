@@ -1,0 +1,3 @@
+*.o
+/torrent-verify
+tags
