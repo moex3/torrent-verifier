@@ -17,7 +17,7 @@
 static int metainfo_read(const char* path, char** out_contents, int* out_size) {
     int ret = 0;
     FILE* f = NULL;
-    long size;
+    long size = 0;
     char* contents = NULL, *curr_contents = NULL;
     size_t read;
 
