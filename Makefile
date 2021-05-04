@@ -2,7 +2,7 @@ MultiThread = Yes
 
 PROGNAME = torrent-verify
 CC = cc
-CFLAGS = -Wall -std=gnu99 -I./subm/heapless-bencode -Werror -O3
+CFLAGS = -Wall -std=gnu11 -I./subm/heapless-bencode -Werror -O3
 CPPFLAGS = -DPROGRAM_NAME='"$(PROGNAME)"' -DBUILD_INFO \
 		   -DBUILD_HASH="\"`git rev-parse --abbrev-ref HEAD` -> `git rev-parse --short HEAD`\"" -DBUILD_DATE="\"`date -I`\""
 

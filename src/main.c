@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "metainfo.h"
 #include "verify.h"
 #include "showinfo.h"
@@ -10,6 +11,8 @@
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "torrent-verify"
 #endif
+
+static_assert((sizeof(long long) >= 8), "Size of long long is less than 8, cannot compile");
 
 void usage() {
     fprintf(stderr, "Usage: " PROGRAM_NAME " [-h | -i | -s] [-n] [-v data_path] [--] .torrent_file...\n");
@@ -43,11 +46,6 @@ BUILD_HASH " (" BUILD_DATE ")\n"
 }
 
 int main(int argc, char** argv) {
-    if (sizeof(long int) < 8) {
-        fprintf(stderr, "long int is less than 8 bytes. Create an issue please.\n");
-        exit(1);
-    }
-    
     if (opts_parse(argc, argv) == -1)
         usage();
 
