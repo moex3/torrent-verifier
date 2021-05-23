@@ -22,7 +22,7 @@ install: $(PROGNAME)
 	install -s -- $< $(InstallPrefix)/$(PROGNAME)
 
 uninstall:
-	rm -r -- $(InstallPrefix)/$(PROGNAME)
+	rm -f -- $(InstallPrefix)/$(PROGNAME)
 
 $(PROGNAME): $(OBJS)
 	$(CC) -o $@ $+ $(CFLAGS) $(CPPFLAGS)
