@@ -15,7 +15,7 @@
 static_assert((sizeof(long long) >= 8), "Size of long long is less than 8, cannot compile");
 
 void usage() {
-    fprintf(stderr, "Usage: " PROGRAM_NAME " [-h | -i | -s] [-n] [-v data_path] [--] .torrent_file...\n");
+    fprintf(stderr, "Usage: " PROGRAM_NAME " [-h | -i | -s | -f CHAR] [-n] [-v data_path] [--] .torrent_file...\n");
     exit(EXIT_FAILURE);
 }
 
@@ -30,6 +30,8 @@ void help() {
 "   -v PATH   verify the torrent file, pass in the path of the files\n"
 "   -s        don't write any output\n"
 "   -n        Don't use torrent name as a folder when verifying\n"
+"   -f CHAR   Show info from the .torrent file, as an input for a script\n"
+"             Valid CHARs are: i - Info hash\n"
 "\n"
 "EXIT CODE\n"
 "   If no error, exit code is 0. In verify mode exit code is 0 if it's\n"
@@ -56,12 +58,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Provide at least one torrent file\n");
         usage();
     }
-    /*
-    if (data_path && optind != argc - 1) {
-        fprintf(stderr, "If used with -v, only input 1 bittorrent file\n");
-        usage();
-    }
-    */
     
     int exit_code = EXIT_SUCCESS;
     for (int i = optind; i < argc; i++) {
@@ -72,6 +68,10 @@ int main(int argc, char** argv) {
 
         if (opt_showinfo && !opt_silent) {
             showinfo(&m);
+        }
+
+        if (opt_scriptformat_info != OPT_SCRIPTFORMAT_NONE) {
+            showinfo_script(&m);
         }
 
         if (opt_data_path) { /* Verify */

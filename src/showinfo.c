@@ -3,6 +3,7 @@
 #include <time.h>
 #include "showinfo.h"
 #include "util.h"
+#include "opts.h"
 
 void showinfo(metainfo_t* m) {
     const char* s;
@@ -95,3 +96,20 @@ void showinfo(metainfo_t* m) {
         strncpy(str_buff, "err", sizeof(str_buff));
     printf("Total size: %s\n", str_buff);
 }
+
+void showinfo_script(metainfo_t* m) {
+    switch (opt_scriptformat_info) {
+    case OPT_SCRIPTFORMAT_INFOHASH:
+    {
+        char hex_str[sizeof(sha1sum_t)*2+1];
+        const sha1sum_t* infohash = metainfo_infohash(m);
+        util_byte2hex((const unsigned char*)infohash, sizeof(sha1sum_t), 0, hex_str);
+        printf("%s\n", hex_str);
+        break;
+    }
+    default:
+        printf("Unknown?? [>.<]\n");
+        break;
+    }
+}
+
