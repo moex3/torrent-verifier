@@ -1,4 +1,5 @@
 MultiThread = Yes
+InstallPrefix = /usr/local/bin
 
 PROGNAME = torrent-verify
 CC = cc
@@ -16,6 +17,12 @@ SOURCE =  $(wildcard subm/heapless-bencode/*.c) $(wildcard src/*.c)
 OBJS = $(SOURCE:.c=.o)
 
 all: $(PROGNAME)
+
+install: $(PROGNAME)
+	install -s -- $< $(InstallPrefix)/$(PROGNAME)
+
+uninstall:
+	rm -r -- $(InstallPrefix)/$(PROGNAME)
 
 $(PROGNAME): $(OBJS)
 	$(CC) -o $@ $+ $(CFLAGS) $(CPPFLAGS)
