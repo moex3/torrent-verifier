@@ -1,4 +1,5 @@
 MultiThread = Yes
+HttpTorrent = Yes
 InstallPrefix = /usr/local/bin
 
 PROGNAME = torrent-verify
@@ -8,8 +9,13 @@ CPPFLAGS = -DPROGRAM_NAME='"$(PROGNAME)"' -DBUILD_INFO \
 		   -DBUILD_HASH="\"`git rev-parse --abbrev-ref HEAD` -> `git rev-parse --short HEAD`\"" -DBUILD_DATE="\"`date -I`\""
 
 ifeq ($(MultiThread), Yes)
-CFLAGS += -lpthread
+LDLIBS += -lpthread
 CPPFLAGS += -DMT
+endif
+
+ifeq ($(HttpTorrent), Yes)
+LDLIBS += -lcurl
+CPPFLAGS += -DHTTP_TORRENT=1
 endif
 
 SOURCE =  $(wildcard subm/heapless-bencode/*.c) $(wildcard src/*.c)
@@ -25,7 +31,8 @@ uninstall:
 	rm -f -- $(InstallPrefix)/$(PROGNAME)
 
 $(PROGNAME): $(OBJS)
-	$(CC) -o $@ $+ $(CFLAGS) $(CPPFLAGS)
+	$(CC) -o $@ $+ $(CFLAGS) $(CPPFLAGS) $(LDLIBS)
+
 
 clean:
 	-rm -- $(OBJS) $(PROGNAME)

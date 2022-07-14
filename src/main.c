@@ -42,6 +42,9 @@ BUILD_HASH " (" BUILD_DATE ")\n"
 #ifdef MT
 "MultiThread support\n"
 #endif
+#ifdef HTTP_TORRENT
+"HTTP Torrent support\n"
+#endif
 #endif
 );
     exit(EXIT_SUCCESS);
@@ -55,7 +58,11 @@ int main(int argc, char** argv) {
         help();
 
     if (optind >= argc) {
-        fprintf(stderr, "Provide at least one torrent file\n");
+        fprintf(stderr, "Provide at least one torrent file"
+#ifdef HTTP_TORRENT
+                        " or an http link to a torrent file"
+#endif
+                        "\n");
         usage();
     }
     
