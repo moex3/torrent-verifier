@@ -2,6 +2,9 @@
 #define METAFILE_H
 #include <bencode.h>
 
+/* 128 MiB */
+#define MAX_TORRENT_SIZE 128*1024*1024
+
 /* This file will parse the .torrent file and make accessor functions */
 
 typedef struct {

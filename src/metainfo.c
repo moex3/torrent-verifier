@@ -6,20 +6,9 @@
 #include <stdint.h>
 
 #include "sha1.h"
+#include "metainfo_http.h"
 
-#ifdef HTTP_TORRENT
-#include <curl/curl.h>
-#endif
 
-/* 128 MiB */
-#define MAX_TORRENT_SIZE 128*1024*1024
-
-#ifdef HTTP_TORRENT
-struct http_metainfo {
-    int64_t c_size, max_size;
-    char *data;
-};
-#endif
 
 /* 
  * Read the file in memory, and return the pointer to it (which needs to be
@@ -79,124 +68,6 @@ end:
     return ret;
 }
 
-#ifdef HTTP_TORRENT
-static size_t metainfo_read_http_headercb(char *buf, size_t size, size_t n,
-        void *data) {
-    struct http_metainfo *h_meta = (struct http_metainfo*)data;
-    const char *cl_header = "content-length";
-    char *sep = memchr(buf, ':', size * n);
-
-    if (!sep || (sep - buf) != strlen(cl_header))
-        goto end;
-
-    if (strncmp(cl_header, buf, strlen(cl_header)) == 0) {
-        char *endp;
-        int64_t len;
-
-        sep += 2;
-        errno = 0;
-        len = strtoll(sep, &endp, 10);
-        if (sep != endp && errno == 0)
-            h_meta->max_size = len;
-    }
-    
-end:
-    return size * n;
-}
-
-static size_t metainfo_read_http_writecb(char *ptr, size_t size, size_t n,
-        void *data) {
-    struct http_metainfo *h_meta = (struct http_metainfo*)data;
-    size_t bytes = size * n;
-
-    if (h_meta->max_size >= MAX_TORRENT_SIZE)
-        goto fail; /* Stop processing if too large */
-
-    if (h_meta->max_size == -1) {
-        /* If no content-length, make a dinamic array */
-        h_meta->max_size = 0;
-    } else if (!h_meta->data) {
-        /* We have content-size, and we haven't alloced yet */
-        h_meta->data = malloc(h_meta->max_size);
-    }
-
-    size_t free_space = h_meta->max_size - h_meta->c_size;
-
-    if (bytes > free_space) {
-        while (bytes > free_space) {
-            if (h_meta->max_size == 0)
-                h_meta->max_size = 2048;
-
-            h_meta->max_size *= 2;
-            free_space = h_meta->max_size - h_meta->c_size;
-        }
-
-        void *n_data = realloc(h_meta->data, h_meta->max_size);
-        if (!n_data)
-            goto fail;
-
-        h_meta->data = n_data;
-    }
-
-    if (h_meta->c_size + bytes > MAX_TORRENT_SIZE)
-        goto fail;
-
-    memcpy(&h_meta->data[h_meta->c_size], ptr, bytes);
-    h_meta->c_size += bytes;
-
-    return bytes;
-
-fail:
-    if (h_meta->data)
-        free(h_meta->data);
-    return 0;
-}
-#endif
-
-/* 
- * Download the file in memory, and return the pointer to it (which needs to be
- * freed) in out_contents and the size in out_size. If the file is too big,
- * fail. Returns 0 on success and an errno on fail.
- */
-static int metainfo_read_http(const char* url, char** out_contents, int* out_size) {
-#ifdef HTTP_TORRENT
-    char errbuf[CURL_ERROR_SIZE];
-    CURL *curl = curl_easy_init();
-    CURLcode res;
-    struct http_metainfo h_meta = {
-        .c_size = 0,
-        .max_size = -1,
-        .data = NULL,
-    };
-
-    if (!curl) {
-        return -1; /* Not errno but eh */
-    }
-
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &h_meta);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &h_meta);
-    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, metainfo_read_http_headercb);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, metainfo_read_http_writecb);
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-
-    res = curl_easy_perform(curl);
-
-    curl_easy_cleanup(curl);
-
-    if (res) {
-        fprintf(stderr, "libCurl error: %s\n", errbuf);
-        return res;
-    }
-
-    *out_contents = h_meta.data;
-    *out_size = h_meta.c_size; /* caller will free */
-
-    return 0;
-#else
-    __builtin_unreachable(); /* Could be better tbh */
-#endif
-}
 
 /* 
  * Read/download the file in memory, and return the pointer to it (which needs to be
@@ -204,16 +75,12 @@ static int metainfo_read_http(const char* url, char** out_contents, int* out_siz
  * fail. Returns 0 on success and an errno on fail.
  */
 static int metainfo_read(const char* path, char** out_contents, int* out_size) {
-#ifdef HTTP_TORRENT
-    const int has_http = 1;
-#else
-    const int has_http = 0;
-#endif
-
     if (strncmp(path, "http", 4) == 0) {
-        if (!has_http)
-            return ENOPROTOOPT;
+#ifndef HTTP_TORRENT
+        return ENOPROTOOPT;
+#else
         return metainfo_read_http(path, out_contents, out_size);
+#endif
     }
 
     return metainfo_read_file(path, out_contents, out_size);
