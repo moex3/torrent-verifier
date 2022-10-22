@@ -2,10 +2,9 @@ MultiThread = Yes
 HttpTorrent = Yes
 InstallPrefix = /usr/local/bin
 
-PROGNAME = torrent-verify
-CC = cc
-CFLAGS = -Wall -std=gnu11 -I./subm/heapless-bencode -Werror -O3
-CPPFLAGS = -DPROGRAM_NAME='"$(PROGNAME)"' -DBUILD_INFO \
+PROGNAME := torrent-verify
+CFLAGS := -Wall -std=gnu11 -I./subm/heapless-bencode -Werror -O2 -flto
+CPPFLAGS := -DPROGRAM_NAME='"$(PROGNAME)"' -DBUILD_INFO \
 		   -DBUILD_HASH="\"`git rev-parse --abbrev-ref HEAD` -> `git rev-parse --short HEAD`\"" -DBUILD_DATE="\"`date -I`\""
 
 ifeq ($(MultiThread), Yes)

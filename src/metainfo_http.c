@@ -156,7 +156,8 @@ static int metainfo_http_progress(struct http_metainfo* h_meta) {
     return CURL_PROGRESSFUNC_CONTINUE;
 }
 
-static int connect_cb(void* data, char*, char*, int, int) {
+static int connect_cb(void* data, char* conn_ip, char* conn_local_ip,
+        int conn_port, int conn_local_port) {
     struct http_metainfo* h_meta = data;
     if (!opt_silent)
         clock_gettime(CLOCK_MONOTONIC_COARSE, &h_meta->progress.dlstart_time);
