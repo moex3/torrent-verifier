@@ -245,6 +245,7 @@ int metainfo_read_http(const char* url, char** out_contents, int* out_size) {
         ioctl(0, TIOCGWINSZ, &h_meta.progress.wsize);
     }
 
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl/8.1.2");
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &h_meta);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &h_meta);
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, metainfo_read_http_headercb);
